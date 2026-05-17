@@ -785,13 +785,15 @@ app.post('/api/elements/sync', (req: Request, res: Response) => {
 
     logger.info(`Sync completed: ${successCount}/${frontendElements.length} elements synced`);
 
-    // 3. Broadcast sync event to all WebSocket clients
+    // 3. Broadcast the full synced scene to all WebSocket clients.
+    // The frontend only logs `elements_synced`; it must receive
+    // `initial_elements` to replace any stale local canvas state.
     broadcast({
-      type: 'elements_synced',
-      count: successCount,
+      type: 'initial_elements',
+      elements: processedElements,
       timestamp: new Date().toISOString(),
       source: 'manual_sync'
-    });
+    } as InitialElementsMessage & { timestamp: string; source: string });
 
     // 4. Return sync results
     res.json({
